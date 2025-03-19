@@ -5,6 +5,12 @@ import morgan from "morgan";
 import dotenv from "dotenv";
 import rateLimit from "express-rate-limit";
 import connectDB from "./config/db.js"
+import { redisClient, connectRedis } from './config/redisClient.js';
+
+// After MongoDB connection
+
+
+
 
 
 // Import Routes
@@ -15,12 +21,20 @@ import userRoutes from "./routes/userRoutes.js";
 // import resourceRoutes from "./routes/resourceRoutes.js";
 import faqRoutes from "./routes/faqRoutes.js";
 // import questionRoutes from "./routes/questionRoutes.js";
+// app.js or server.js (add this to your existing file)
+import watiRoutes from "./routes/watiRoutes.js";
+
+// Add this where you define your routes
+
 
 // Load environment variables
 dotenv.config();
 
 // Connect to Database
 connectDB();
+console.log("Connecting to Redis...");
+await connectRedis();
+
 
 // Initialize Express App
 const app = express();
@@ -36,12 +50,12 @@ if (process.env.NODE_ENV === "development") {
 }
 
 // Rate Limiting (Prevents DDoS Attacks)
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // Limit each IP to 100 requests per windowMs
-    message: "Too many requests, please try again later.",
-});
-app.use(limiter);
+// const limiter = rateLimit({
+//     windowMs: 15 * 60 * 1000, // 15 minutes
+//     max: 100, // Limit each IP to 100 requests per windowMs
+//     message: "Too many requests, please try again later.",
+// });
+// app.use(limiter);
 
 
 
@@ -53,6 +67,9 @@ app.use("/api/referral", referralRoutes);
 // app.use("/api/verify", verifyRoutes);
 // app.use("/api/leaderboard", leaderboardRoutes);
 app.use("/api/faq", faqRoutes);
+
+
+app.use("/api/wati", watiRoutes);
 
 // 404 Handler (Should be placed **after** all routes)
 app.use((req, res) => {
