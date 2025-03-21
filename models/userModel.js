@@ -1,3 +1,6 @@
+
+
+
 import mongoose from "mongoose";
 
 const { Schema } = mongoose;
@@ -21,9 +24,25 @@ const UserSchema = new Schema(
         message: "Invalid Phone Number Format",
       },
     },
-    referralCode:{
-       type:String,
-       unique:true,
+    yearOfBirth: {
+      type: Number,
+      required: true,
+      min: 1900, // Prevents unrealistic values
+      max: new Date().getFullYear(), // Ensures it's not a future year
+    },
+    place: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    gender: {
+      type: String,
+      enum: ["Male", "Female", "Other"],
+      required: true,
+    },
+    referralCode: {
+      type: String,
+      unique: true,
     },
     referralLink: {
       type: String,
@@ -39,6 +58,25 @@ const UserSchema = new Schema(
       type: Number,
       default: 0,
       min: 0, // Prevents negative points
+    },
+    totalInvites: {
+      type: Number,
+      default: 0,
+      min: 0, // Tracks how many users this person referred
+    },
+    rank: {
+      type: Number,
+      default: 1, // Rank can increase based on referrals, points, etc.
+      min: 1,
+    },
+    level: {
+      type: String,
+      default: "Beginner", // Could be "Beginner", "Intermediate", "Expert", etc.
+      enum: ["Beginner", "Intermediate", "Expert", "Master"],
+    },
+    qrCode: {
+      type: String, // Store QR code URL or base64 string
+      default: null,
     },
     isVerified: {
       type: Boolean,
@@ -57,7 +95,11 @@ UserSchema.index({ phoneNumber: 1 });
 UserSchema.index({ isVerified: 1 });
 UserSchema.index({ isAdmin: 1 });
 UserSchema.index({ referralLink: 1 }, { unique: true, sparse: true });
-UserSchema.index({ referredBy: 1 }); // ✅ Added for better lookup performance
+UserSchema.index({ referredBy: 1 });
+UserSchema.index({ rank: 1 });
+UserSchema.index({ level: 1 });
+UserSchema.index({ gender: 1 });
+UserSchema.index({ yearOfBirth: 1 });
 
 // Static Method: Get paginated users
 UserSchema.statics.getPaginatedUsers = async function (page = 1, limit = 10) {
@@ -68,3 +110,4 @@ UserSchema.statics.getPaginatedUsers = async function (page = 1, limit = 10) {
 // Compile & Export Model
 const User = mongoose.model("User", UserSchema);
 export default User;
+
