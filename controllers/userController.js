@@ -221,19 +221,311 @@
 
 
 
-// controllers/userController.js
-import { validationResult } from 'express-validator';
-import userModel from '../models/userModel.js';
+// // controllers/userController.js
+// import { validationResult } from 'express-validator';
+// import userModel from '../models/userModel.js';
 
-import { sendWhatsAppTemplate } from '../services/watiService.js';
+// import { sendWhatsAppTemplate } from '../services/watiService.js';
+// import crypto from "crypto";
+// import Otp from '../models/Otp.js';
+// import QRCode from 'qrcode';
+
+
+// import {createReferralLink} from './referralController.js';
+
+// // Generate a random alphanumeric code
+// const generateUniqueId = () => crypto.randomBytes(4).toString("hex");
+
+// // 🔹 User Registration with OTP Flow
+// export const registerUser = async (req, res) => {
+//   try {
+//     // Validate input
+//     const errors = validationResult(req);
+//     if (!errors.isEmpty()) {
+//       return res.status(400).json({ success: false, errors: errors.array() });
+//     }
+
+//     const { phoneNumber, name, referredBy } = req.body;
+
+//     // Check if User Already Exists in main user collection
+//     const existingUser = await userModel.findOne({ phoneNumber }).lean();
+//     if (existingUser) {
+//       // User already exists, return user data for auto-login
+//       return res.status(200).json({ 
+//         success: true, 
+//         message: "User already registered", 
+//         isVerified: true,
+//         userData: {
+//           name: existingUser.name,
+//           phoneNumber: existingUser.phoneNumber,
+//           points: existingUser.points,
+//           referralCode: existingUser.referralCode,
+//           referralLink: existingUser.referralLink,
+//           yearOfBirth: existingUser.yearOfBirth,
+//           place: existingUser.place,
+//           gender: existingUser.gender,
+//           totalInvites: existingUser.totalInvites,
+//           rank: existingUser.rank,
+//           level: existingUser.level,
+//           qrCode: existingUser.qrCode
+//         }
+//       });
+//     }
+
+//     // Generate OTP (6 digit random number)
+//     const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    
+//     // Delete any existing OTPs for this number
+//     await Otp.deleteMany({ phoneNumber });
+    
+//     // Create new OTP entry
+//     await Otp.create({
+//       phoneNumber,
+//       otp
+//     });
+    
+//     // Send WhatsApp verification message with OTP
+//     try {
+//       await sendWhatsAppTemplate(phoneNumber, 'profile_update__otp', [
+//         { name: '1', value: otp }
+//       ]);
+//       console.log(`✅ OTP sent to ${phoneNumber}`);
+//     } catch (error) {
+//       console.error("❌ Failed to send OTP:", error);
+//       // Continue the process even if WhatsApp sending fails
+//     }
+
+//     res.status(200).json({
+//       success: true,
+//       message: "✅ OTP sent. Please verify your number via WhatsApp",
+//       isVerified: false,
+//       phoneNumber
+//     });
+
+//   } catch (error) {
+//     console.error("❌ Registration Error:", error.message);
+//     res.status(500).json({ success: false, message: "Server Error", error: error.message });
+//   }
+// };
+
+
+
+
+
+
+
+
+// // 🔹 Verify OTP and Complete Registration
+// export const verifyOtpAndRegister = async (req, res) => {
+//   try {
+//     // Validate input
+//     const errors = validationResult(req);
+//     if (!errors.isEmpty()) {
+//       return res.status(400).json({ success: false, errors: errors.array() });
+//     }
+
+//     const { phoneNumber, otp, name, referredBy } = req.body;
+
+//     // Find the OTP entry
+//     const otpRecord = await Otp.findOne({ phoneNumber, otp });
+    
+//     if (!otpRecord) {
+//       return res.status(400).json({ 
+//         success: false, 
+//         message: "Invalid OTP or OTP expired" 
+//       });
+//     }
+
+//     // Check if user already exists (double check)
+//     const existingUser = await userModel.findOne({ phoneNumber }).lean();
+//     if (existingUser) {
+//       // Delete the OTP since it's verified
+//       await Otp.deleteMany({ phoneNumber });
+      
+//       return res.status(200).json({ 
+//         success: true, 
+//         message: "User already registered", 
+//         isVerified: true,
+//         userData: {
+//           name: existingUser.name,
+//           phoneNumber: existingUser.phoneNumber,
+//           points: existingUser.points,
+//           referralCode: existingUser.referralCode,
+//           referralLink: existingUser.referralLink,
+//           qrCode: existingUser.qrCode
+//         }
+//       });
+//     }
+
+//     // Generate unique referral code with name and random string
+//     // Clean the name (remove spaces, special chars) and get first part
+
+//     // const cleanName = name.replace(/[^a-zA-Z0-9]/g, '').substring(0, 10);
+//     // let referralCode = `${cleanName}_${generateUniqueId()}`;
+
+   
+//     // Check if referralCode already exists and regenerate if needed
+//     let isUnique = false;
+//     let attempts = 0;
+    
+//     while (!isUnique && attempts < 5) {
+//       const existingCode = await userModel.findOne({ referralCode });
+//       if (!existingCode) {
+//         isUnique = true;
+//       } else {
+//         referralCode = `${cleanName}_${generateUniqueId()}`;
+//         attempts++;
+//       }
+//     }
+    
+//     // Generate referral link
+//     // const referralLink = `https://localhost:3001.com/${referralCode}`;
+    
+  
+
+//     // Generate QR code as URL
+//     const qrCodeUrl = await QRCode.toDataURL(referralLink);
+
+//     // Create new user
+//     const newUser = new userModel({
+//       name,
+//       phoneNumber,
+//       referralCode,
+//       referralLink,
+//       qrCode: qrCodeUrl, // Store the QR code URL
+//       isVerified: true,
+//       // These fields will need to be updated later in profile completion
+//       yearOfBirth: new Date().getFullYear() - 18, // Default value
+//       place: "Not specified",
+//       gender: "Other"
+//     });
+
+//     // If referral code provided, process it
+//     if (referredBy) {
+//       const referrer = await userModel.findOne({ referralCode: referredBy });
+//       if (referrer) {
+//         // Set referrer in new user
+//         newUser.referredBy = referrer._id;
+        
+//         // Update referrer's points and total invites
+//         await userModel.findByIdAndUpdate(referrer._id, {
+//           $inc: { 
+//             points: 10,
+//             totalInvites: 1
+//           }
+//         });
+        
+//         console.log(`✅ Referral processed: ${referrer.name} (+10 points)`);
+//       } else {
+//         console.log(`❌ Invalid referral code: ${referredBy}`);
+//       }
+//     }
+
+//     // Save the new user
+//     await newUser.save();
+    
+//     // Delete the OTP since it's verified and used
+//     await Otp.deleteMany({ phoneNumber });
+
+//     // Send welcome message on WhatsApp
+//     try {
+//       await sendWhatsAppTemplate(phoneNumber, 'welcome_message_registeration', [
+//         { name: '1', value: name },
+//         { name: '2', value: referralLink }
+//       ]);
+//       console.log(`✅ Welcome message sent to ${phoneNumber}`);
+//     } catch (error) {
+//       console.error("❌ Failed to send welcome message:", error);
+//       // Continue even if WhatsApp sending fails
+//     }
+
+//     // Return success with user data
+//     res.status(201).json({
+//       success: true, 
+//       message: "✅ Registration successful!",
+//       isVerified: true,
+//       userData: {
+//         name: newUser.name,
+//         phoneNumber: newUser.phoneNumber,
+//         points: newUser.points,
+//         referralCode: newUser.referralCode,
+//         referralLink: newUser.referralLink,
+//         qrCode: newUser.qrCode
+//       }
+//     });
+
+//   } catch (error) {
+//     console.error("❌ OTP Verification Error:", error.message);
+//     res.status(500).json({ success: false, message: "Server Error", error: error.message });
+//   }
+// };
+
+
+
+
+
+
+
+
+
+
+
+// // 🔹 Resend OTP if needed
+// export const resendOtp = async (req, res) => {
+//   try {
+//     const { phoneNumber } = req.body;
+    
+//     // Generate new OTP
+//     const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    
+//     // Delete any existing OTPs for this number
+//     await Otp.deleteMany({ phoneNumber });
+    
+//     // Create new OTP entry
+//     await Otp.create({
+//       phoneNumber,
+//       otp
+//     });
+    
+//     // Send WhatsApp message with OTP
+//     try {
+//       await sendWhatsAppTemplate(phoneNumber, 'profile_update__otp', [
+//         { name: 'otp', value: otp }
+//       ]);
+//       console.log(`✅ OTP resent to ${phoneNumber}`);
+//     } catch (error) {
+//       console.error("❌ Failed to resend OTP:", error);
+//       // Continue the process even if WhatsApp sending fails
+//     }
+
+//     res.status(200).json({
+//       success: true,
+//       message: "✅ OTP resent successfully",
+//       phoneNumber
+//     });
+    
+//   } catch (error) {
+//     console.error("❌ Resend OTP Error:", error.message);
+//     res.status(500).json({ success: false, message: "Server Error", error: error.message });
+//   }
+// };
+
+
+
+
+
+import { validationResult } from "express-validator";
+import userModel from "../models/userModel.js";
+import { sendWhatsAppTemplate } from "../services/watiService.js";
 import crypto from "crypto";
-import Otp from '../models/Otp.js';
-import QRCode from 'qrcode';
+import Otp from "../models/Otp.js";
+import QRCode from "qrcode";
+import { createReferralLink } from "../controllers/referralController.js"; // ✅ Import referral functions
 
 // Generate a random alphanumeric code
 const generateUniqueId = () => crypto.randomBytes(4).toString("hex");
 
-// 🔹 User Registration with OTP Flow
+// 🔹 Register User with OTP
 export const registerUser = async (req, res) => {
   try {
     // Validate input
@@ -242,61 +534,41 @@ export const registerUser = async (req, res) => {
       return res.status(400).json({ success: false, errors: errors.array() });
     }
 
-    const { phoneNumber, name, referredBy } = req.body;
+    const { phoneNumber, name } = req.body;
 
-    // Check if User Already Exists in main user collection
+    // Check if user already exists
     const existingUser = await userModel.findOne({ phoneNumber }).lean();
     if (existingUser) {
-      // User already exists, return user data for auto-login
-      return res.status(200).json({ 
-        success: true, 
-        message: "User already registered", 
+      return res.status(200).json({
+        success: true,
+        message: "User already registered",
         isVerified: true,
-        userData: {
-          name: existingUser.name,
-          phoneNumber: existingUser.phoneNumber,
-          points: existingUser.points,
-          referralCode: existingUser.referralCode,
-          referralLink: existingUser.referralLink,
-          yearOfBirth: existingUser.yearOfBirth,
-          place: existingUser.place,
-          gender: existingUser.gender,
-          totalInvites: existingUser.totalInvites,
-          rank: existingUser.rank,
-          level: existingUser.level,
-          qrCode: existingUser.qrCode
-        }
+        userData: existingUser,
       });
     }
 
-    // Generate OTP (6 digit random number)
+    // Generate OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     
-    // Delete any existing OTPs for this number
+    // Delete existing OTPs and create a new one
     await Otp.deleteMany({ phoneNumber });
-    
-    // Create new OTP entry
-    await Otp.create({
-      phoneNumber,
-      otp
-    });
-    
-    // Send WhatsApp verification message with OTP
+    await Otp.create({ phoneNumber, otp });
+
+    // Send OTP via WhatsApp
     try {
-      await sendWhatsAppTemplate(phoneNumber, 'profile_update__otp', [
-        { name: '1', value: otp }
+      await sendWhatsAppTemplate(phoneNumber, "profile_update__otp", [
+        { name: "1", value: otp },
       ]);
       console.log(`✅ OTP sent to ${phoneNumber}`);
     } catch (error) {
       console.error("❌ Failed to send OTP:", error);
-      // Continue the process even if WhatsApp sending fails
     }
 
     res.status(200).json({
       success: true,
       message: "✅ OTP sent. Please verify your number via WhatsApp",
       isVerified: false,
-      phoneNumber
+      phoneNumber,
     });
 
   } catch (error) {
@@ -305,17 +577,9 @@ export const registerUser = async (req, res) => {
   }
 };
 
-
-
-
-
-
-
-
-// 🔹 Verify OTP and Complete Registration
+// 🔹 Verify OTP & Complete Registration
 export const verifyOtpAndRegister = async (req, res) => {
   try {
-    // Validate input
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ success: false, errors: errors.array() });
@@ -323,128 +587,101 @@ export const verifyOtpAndRegister = async (req, res) => {
 
     const { phoneNumber, otp, name, referredBy } = req.body;
 
-    // Find the OTP entry
+    // Validate OTP
     const otpRecord = await Otp.findOne({ phoneNumber, otp });
-    
     if (!otpRecord) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "Invalid OTP or OTP expired" 
-      });
+      return res.status(400).json({ success: false, message: "Invalid OTP or OTP expired" });
     }
 
-    // Check if user already exists (double check)
+    // Check if user already exists
     const existingUser = await userModel.findOne({ phoneNumber }).lean();
     if (existingUser) {
-      // Delete the OTP since it's verified
       await Otp.deleteMany({ phoneNumber });
-      
-      return res.status(200).json({ 
-        success: true, 
-        message: "User already registered", 
+      return res.status(200).json({
+        success: true,
+        message: "User already registered",
         isVerified: true,
-        userData: {
-          name: existingUser.name,
-          phoneNumber: existingUser.phoneNumber,
-          points: existingUser.points,
-          referralCode: existingUser.referralCode,
-          referralLink: existingUser.referralLink,
-          qrCode: existingUser.qrCode
-        }
+        userData: existingUser,
       });
     }
 
-    // Generate unique referral code with name and random string
-    // Clean the name (remove spaces, special chars) and get first part
-    const cleanName = name.replace(/[^a-zA-Z0-9]/g, '').substring(0, 10);
+    // Generate Unique Referral Code
+    const cleanName = name.replace(/[^a-zA-Z0-9]/g, "").substring(0, 10);
     let referralCode = `${cleanName}_${generateUniqueId()}`;
-    
-    // Check if referralCode already exists and regenerate if needed
-    let isUnique = false;
-    let attempts = 0;
-    
-    while (!isUnique && attempts < 5) {
-      const existingCode = await userModel.findOne({ referralCode });
-      if (!existingCode) {
-        isUnique = true;
-      } else {
-        referralCode = `${cleanName}_${generateUniqueId()}`;
-        attempts++;
-      }
-    }
-    
-    // Generate referral link
-    const referralLink = `https://localhost:3001.com/${referralCode}`;
-    
-    // Generate QR code as URL
-    const qrCodeUrl = await QRCode.toDataURL(referralLink);
 
-    // Create new user
+    // Ensure referralCode is unique
+    let attempts = 0;
+    while (await userModel.findOne({ referralCode }) && attempts < 5) {
+      referralCode = `${cleanName}_${generateUniqueId()}`;
+      attempts++;
+    }
+
+    // Create New User
     const newUser = new userModel({
       name,
       phoneNumber,
       referralCode,
-      referralLink,
-      qrCode: qrCodeUrl, // Store the QR code URL
       isVerified: true,
-      // These fields will need to be updated later in profile completion
-      yearOfBirth: new Date().getFullYear() - 18, // Default value
+      yearOfBirth: new Date().getFullYear() - 18,
       place: "Not specified",
-      gender: "Other"
+      gender: "Other",
     });
 
-    // If referral code provided, process it
+    // Save new user before generating referral link
+    await newUser.save();
+
+    // Generate Referral Link
+    const referralLink = await createReferralLink(newUser._id);
+    
+    // Generate QR Code for referral link
+    const qrCodeUrl = await QRCode.toDataURL(referralLink);
+
+    // Update user with referral link & QR code
+    await userModel.findByIdAndUpdate(newUser._id, {
+      referralLink,
+      qrCode: qrCodeUrl,
+    });
+
+    // If referred by someone, process referral
     if (referredBy) {
       const referrer = await userModel.findOne({ referralCode: referredBy });
       if (referrer) {
-        // Set referrer in new user
         newUser.referredBy = referrer._id;
-        
-        // Update referrer's points and total invites
+
+        // Update referrer's points & invites count
         await userModel.findByIdAndUpdate(referrer._id, {
-          $inc: { 
-            points: 10,
-            totalInvites: 1
-          }
+          $inc: { points: 10, totalInvites: 1 },
         });
-        
+
         console.log(`✅ Referral processed: ${referrer.name} (+10 points)`);
       } else {
         console.log(`❌ Invalid referral code: ${referredBy}`);
       }
     }
 
-    // Save the new user
-    await newUser.save();
-    
-    // Delete the OTP since it's verified and used
-    await Otp.deleteMany({ phoneNumber });
-
-    // Send welcome message on WhatsApp
+    // Send WhatsApp welcome message
     try {
-      await sendWhatsAppTemplate(phoneNumber, 'welcome_message_registeration', [
-        { name: '1', value: name },
-        { name: '2', value: referralLink }
+      await sendWhatsAppTemplate(phoneNumber, "welcome_message_registeration", [
+        { name: "1", value: name },
+        { name: "2", value: referralLink },
       ]);
       console.log(`✅ Welcome message sent to ${phoneNumber}`);
     } catch (error) {
       console.error("❌ Failed to send welcome message:", error);
-      // Continue even if WhatsApp sending fails
     }
 
-    // Return success with user data
+    // Respond with user data
     res.status(201).json({
-      success: true, 
+      success: true,
       message: "✅ Registration successful!",
       isVerified: true,
       userData: {
         name: newUser.name,
         phoneNumber: newUser.phoneNumber,
-        points: newUser.points,
         referralCode: newUser.referralCode,
-        referralLink: newUser.referralLink,
-        qrCode: newUser.qrCode
-      }
+        referralLink,
+        qrCode: qrCodeUrl,
+      },
     });
 
   } catch (error) {
@@ -453,17 +690,7 @@ export const verifyOtpAndRegister = async (req, res) => {
   }
 };
 
-
-
-
-
-
-
-
-
-
-
-// 🔹 Resend OTP if needed
+// 🔹 Resend OTP
 export const resendOtp = async (req, res) => {
   try {
     const { phoneNumber } = req.body;
@@ -471,38 +698,31 @@ export const resendOtp = async (req, res) => {
     // Generate new OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     
-    // Delete any existing OTPs for this number
+    // Delete any existing OTPs
     await Otp.deleteMany({ phoneNumber });
-    
-    // Create new OTP entry
-    await Otp.create({
-      phoneNumber,
-      otp
-    });
-    
+    await Otp.create({ phoneNumber, otp });
+
     // Send WhatsApp message with OTP
     try {
-      await sendWhatsAppTemplate(phoneNumber, 'profile_update__otp', [
-        { name: 'otp', value: otp }
+      await sendWhatsAppTemplate(phoneNumber, "profile_update__otp", [
+        { name: "otp", value: otp },
       ]);
       console.log(`✅ OTP resent to ${phoneNumber}`);
     } catch (error) {
       console.error("❌ Failed to resend OTP:", error);
-      // Continue the process even if WhatsApp sending fails
     }
 
     res.status(200).json({
       success: true,
       message: "✅ OTP resent successfully",
-      phoneNumber
+      phoneNumber,
     });
-    
+
   } catch (error) {
     console.error("❌ Resend OTP Error:", error.message);
     res.status(500).json({ success: false, message: "Server Error", error: error.message });
   }
 };
-
 
 
 
