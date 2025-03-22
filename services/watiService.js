@@ -15,7 +15,7 @@ export const sendWhatsAppTemplate = async (phoneNumber, templateName, parameters
     // Format phone number (ensure it has country code but no '+')
     const cleanNumber = phoneNumber.replace(/^\+/, '');
     
-    const url = `https://live-mt-server.wati.io/${watiConfig.clientId}/api/v1/sendTemplateMessage?whatsappNumber=${cleanNumber}`;
+    const url = `https://live-mt-server.wati.io/${watiConfig.clientId}/api/v1/sendTemplateMessage?whatsappNumber=+${cleanNumber}`;
     
     const payload = {
       parameters,

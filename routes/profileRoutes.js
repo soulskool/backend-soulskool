@@ -86,6 +86,9 @@ router.get("/profile", authenticate, async (req, res) => {
  * @desc   Request OTP for profile update
  * @access Private
  */
+
+
+
 router.post("/profile/request-otp", authenticate, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);

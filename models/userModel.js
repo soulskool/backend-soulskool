@@ -1,6 +1,3 @@
-
-
-
 import mongoose from "mongoose";
 
 const { Schema } = mongoose;
@@ -100,6 +97,7 @@ UserSchema.index({ rank: 1 });
 UserSchema.index({ level: 1 });
 UserSchema.index({ gender: 1 });
 UserSchema.index({ yearOfBirth: 1 });
+UserSchema.index({ qrCode: 1 }); // Add index for qrCode field
 
 // Static Method: Get paginated users
 UserSchema.statics.getPaginatedUsers = async function (page = 1, limit = 10) {
@@ -110,4 +108,3 @@ UserSchema.statics.getPaginatedUsers = async function (page = 1, limit = 10) {
 // Compile & Export Model
 const User = mongoose.model("User", UserSchema);
 export default User;
-

@@ -18,11 +18,8 @@ import { redisClient, connectRedis } from './config/redisClient.js';
 import referralRoutes from "./routes/referralRoutes.js";
 // import verifyRoutes from "./routes/verifyRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
-// import resourceRoutes from "./routes/resourceRoutes.js";
-import faqRoutes from "./routes/faqRoutes.js";
-// import questionRoutes from "./routes/questionRoutes.js";
-// app.js or server.js (add this to your existing file)
-import watiRoutes from "./routes/watiRoutes.js";
+
+
 
 // Add this where you define your routes
 
@@ -66,10 +63,10 @@ app.use("/api/users", userRoutes);
 app.use("/api/referral", referralRoutes);
 // app.use("/api/verify", verifyRoutes);
 // app.use("/api/leaderboard", leaderboardRoutes);
-app.use("/api/faq", faqRoutes);
 
 
-app.use("/api/wati", watiRoutes);
+
+
 
 // 404 Handler (Should be placed **after** all routes)
 app.use((req, res) => {
