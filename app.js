@@ -5,7 +5,7 @@ import morgan from "morgan";
 import dotenv from "dotenv";
 import rateLimit from "express-rate-limit";
 import connectDB from "./config/db.js"
-import { redisClient, connectRedis } from './config/redisClient.js';
+import {  connectRedis } from './config/redisClient.js';
 
 // After MongoDB connection
 
@@ -14,8 +14,8 @@ import { redisClient, connectRedis } from './config/redisClient.js';
 
 
 // Import Routes
-// import leaderboardRoutes from "./routes/leaderboardRoutes.js";
-import referralRoutes from "./routes/referralRoutes.js";
+ import leaderboardRoutes from "./routes/leaderboardRoutes.js";
+
 // import verifyRoutes from "./routes/verifyRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 
@@ -60,9 +60,9 @@ if (process.env.NODE_ENV === "development") {
 app.use("/api/users", userRoutes);
 // app.use("/api/questions", questionRoutes);
 // app.use("/api/resources", resourceRoutes);
-app.use("/api/referral", referralRoutes);
+// app.use("/api/referral", referralRoutes);
 // app.use("/api/verify", verifyRoutes);
-// app.use("/api/leaderboard", leaderboardRoutes);
+ app.use("/api/leaderboard", leaderboardRoutes);
 
 
 

@@ -13,29 +13,26 @@ const UserSchema = new Schema(
       type: String,
       required: true,
       trim: true,
-      unique: true, // Ensures no duplicate numbers
+      unique: true,
       validate: {
         validator: function (v) {
-          return /^(\+?\d{10,15})$/.test(v); // More flexible regex
+          return /^(\+?\d{10,15})$/.test(v);
         },
         message: "Invalid Phone Number Format",
       },
     },
     yearOfBirth: {
       type: Number,
-      required: true,
-      min: 1900, // Prevents unrealistic values
-      max: new Date().getFullYear(), // Ensures it's not a future year
+      default: null,
     },
     place: {
       type: String,
-      required: true,
-      trim: true,
+      default: null,
     },
     gender: {
       type: String,
       enum: ["Male", "Female", "Other"],
-      required: true,
+      default: "Other",
     },
     referralCode: {
       type: String,
@@ -44,60 +41,42 @@ const UserSchema = new Schema(
     referralLink: {
       type: String,
       unique: true,
-      sparse: true, // ✅ Allows `null` values while keeping uniqueness
+      sparse: true,
     },
     referredBy: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
+      type: String, // Referral code of the referrer
       default: null,
     },
     points: {
       type: Number,
       default: 0,
-      min: 0, // Prevents negative points
+      min: 0,
     },
     totalInvites: {
       type: Number,
       default: 0,
-      min: 0, // Tracks how many users this person referred
-    },
-    rank: {
-      type: Number,
-      default: 1, // Rank can increase based on referrals, points, etc.
-      min: 1,
+      min: 0,
     },
     level: {
-      type: String,
-      default: "Beginner", // Could be "Beginner", "Intermediate", "Expert", etc.
-      enum: ["Beginner", "Intermediate", "Expert", "Master"],
+      type: Number,
+      default: -1,
     },
     qrCode: {
-      type: String, // Store QR code URL or base64 string
+      type: String,
       default: null,
     },
-    isVerified: {
-      type: Boolean,
-      default: false,
-    },
-    isAdmin: {
-      type: Boolean,
-      default: false,
-    },
   },
-  { timestamps: true } // Auto-generates `createdAt` & `updatedAt`
+  { timestamps: true }
 );
 
 // Indexes for better performance
 UserSchema.index({ phoneNumber: 1 });
-UserSchema.index({ isVerified: 1 });
-UserSchema.index({ isAdmin: 1 });
 UserSchema.index({ referralLink: 1 }, { unique: true, sparse: true });
 UserSchema.index({ referredBy: 1 });
-UserSchema.index({ rank: 1 });
 UserSchema.index({ level: 1 });
 UserSchema.index({ gender: 1 });
 UserSchema.index({ yearOfBirth: 1 });
-UserSchema.index({ qrCode: 1 }); // Add index for qrCode field
+UserSchema.index({ qrCode: 1 });
 
 // Static Method: Get paginated users
 UserSchema.statics.getPaginatedUsers = async function (page = 1, limit = 10) {

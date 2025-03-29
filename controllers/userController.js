@@ -1,223 +1,3 @@
-// import userModel from "../models/userModel.js";
-// import jwt from "jsonwebtoken";
-// import dotenv from "dotenv";
-// import { body, validationResult } from "express-validator";
-// import crypto from "crypto";
-
-// dotenv.config();
-
-// // 🔹 Middleware: Validate User Input
-// export const validateUser = [
-//   body("name").trim().notEmpty().withMessage("Name is required"),
-//   body("phoneNumber")
-//     .isMobilePhone()
-//     .withMessage("Valid phone number is required"),
-// ];
-
-// // 🔹 Generate Secure Referral Code
-// const generateReferralCode = () => crypto.randomBytes(3).toString("hex");
-
-
-
-
-// // 🔹 User Registration (ReferredBy is Optional)
-// export const registerUser = async (req, res) => {
-//   try {
-//     // Validate input
-//     const errors = validationResult(req);
-//     if (!errors.isEmpty()) {
-//       return res.status(400).json({ success: false, errors: errors.array() });
-//     }
-
-//     const { name, phoneNumber, referredBy } = req.body;
-
-//     // Check if User Already Exists
-//     const existingUser = await userModel.findOne({ phoneNumber }).lean();
-//     if (existingUser) {
-//       return res.status(400).json({ success: false, message: "User already registered" });
-//     }
-
-//     // Generate Referral Code & Link
-//     const referralCode = generateReferralCode();
-//     console.log("Generated referral code:", referralCode); // 🔍 Debugging
-//     const referralLink = `https://learn.anyonecandance.in/acd/free-trial/y/${name.replace(/\s/g, "").toLowerCase()}_${referralCode}`;
-
-//     let referredByUser = null;
-
-//     // If referredBy is provided, validate it
-//     if (referredBy) {
-//       referredByUser = await userModel.findOne({ referralCode: referredBy }).lean();
-
-//       console.log("🔎 Received referredBy:", referredBy);
-//       console.log("🔎 Found referredByUser:", referredByUser);
-
-//       if (!referredByUser) {
-//         return res.status(400).json({ success: false, message: "Invalid referral code" });
-//       }
-//     }
-
-//     // Create User
-//     const newUser = await userModel.create({
-//       name,
-//       phoneNumber,
-//       referralCode,
-//       referralLink,
-//       referredBy: referredByUser ? referredByUser._id : null, // Store ObjectId if referred
-//       points: 0, // Initialize points
-//     });
-
-//     // Reward Referral Points (Only if valid referredBy exists)
-//     if (referredByUser) {
-//       await userModel.findByIdAndUpdate(
-//         referredByUser._id,
-//         { $inc: { points: 50 } }, // Reward referrer
-//         { new: true }
-//       );
-//     }
-
-//     res.status(201).json({
-//       success: true,
-//       message: "✅ User registered successfully",
-//       referralLink: newUser.referralLink,
-//     });
-
-//   } catch (error) {
-//     console.error("❌ Registration Error:", error.message);
-//     res.status(500).json({ success: false, message: "Server Error", error: error.message });
-//   }
-// };
-
-
-
-
-
-
-
-
-
-
-
-// // 🔹 User Login
-// export const loginUser = async (req, res) => {
-//   try {
-//     const { phoneNumber } = req.body;
-
-//     if (!phoneNumber || !/^\d{10,15}$/.test(phoneNumber)) {
-//       return res.status(400).json({ success: false, message: "Invalid phone number" });
-//     }
-
-//     const user = await userModel.findOne({ phoneNumber }).lean();
-//     if (!user) {
-//       return res.status(400).json({ success: false, message: "User not found" });
-//     }
-
-//     // Generate JWT Token (Stored Securely in HTTP-Only Cookie)
-//     const token = jwt.sign(
-//       { userId: user._id, role: user.isAdmin ? "admin" : "user" },
-//       process.env.JWT_SECRET,
-//       { expiresIn: "7d" }
-//     );
-
-//     res.cookie("authToken", token, {
-//       httpOnly: true,
-//       secure: process.env.NODE_ENV === "production",
-//       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 Days
-//     });
-
-//     res.status(200).json({
-//       success: true,
-//       message: "✅ Login Successful",
-//       token,
-//       user: {
-//         name: user.name,
-//         phoneNumber: user.phoneNumber,
-//         referralLink: user.referralLink,
-//         points: user.points,
-//       },
-//     });
-
-//   } catch (error) {
-//     console.error("❌ Login Error:", error.message);
-//     res.status(500).json({ success: false, message: "Server Error", error: error.message });
-//   }
-// };
-
-// // 🔹 Get User Profile (Authenticated)
-// export const getUserProfile = async (req, res) => {
-//   try {
-//     const user = await userModel.findById(req.user.userId).select("-__v").lean();
-
-//     if (!user) {
-//       return res.status(404).json({ success: false, message: "User not found" });
-//     }
-
-//     res.status(200).json({
-//       success: true,
-//       user: {
-//         name: user.name,
-//         phoneNumber: user.phoneNumber,
-//         referralLink: user.referralLink,
-//         referredBy: user.referredBy,
-//         points: user.points,
-//       },
-//     });
-
-//   } catch (error) {
-//     console.error("❌ Profile Fetch Error:", error.message);
-//     res.status(500).json({ success: false, message: "Server Error", error: error.message });
-//   }
-// };
-
-// // 🔹 Logout User
-// export const logoutUser = (req, res) => {
-//   res.clearCookie("authToken", {
-//     httpOnly: true,
-//     secure: process.env.NODE_ENV === "production",
-//   });
-
-//   res.status(200).json({ success: true, message: "✅ Logout successful" });
-// };
-
-// // 🔹 Get Referral Leaderboard (Top Users)
-// export const getReferralLeaderboard = async (req, res) => {
-//   try {
-//     const topUsers = await userModel.find().sort({ points: -1 }).limit(10).select("name points referralCode").lean();
-
-//     res.status(200).json({
-//       success: true,
-//       leaderboard: topUsers,
-//     });
-
-//   } catch (error) {
-//     console.error("❌ Leaderboard Error:", error.message);
-//     res.status(500).json({ success: false, message: "Server Error", error: error.message });
-//   }
-// };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -229,11 +9,32 @@ import { sendWhatsAppTemplate } from '../services/watiService.js';
 import crypto from "crypto";
 import Otp from '../models/Otp.js';
 import QRCode from 'qrcode';
+ import jwt from "jsonwebtoken";
+ import dotenv from 'dotenv';
+dotenv.config();
 
 // Generate a random alphanumeric code
 const generateUniqueId = () => crypto.randomBytes(4).toString("hex");
+console.log(process.env.JWT_SECRET)
 
-// 🔹 User Registration with OTP Flow
+
+
+
+
+// Helper function to generate JWT token
+const generateToken = (userId) => {
+  return jwt.sign(
+    { id: userId },
+    process.env.JWT_SECRET || 'fallback_secret_key_change_in_production',
+    { expiresIn: '30d' } // Token expires in 30 days
+  );
+};
+
+
+
+
+
+// Modified registerUser function with token
 export const registerUser = async (req, res) => {
   try {
     // Validate input
@@ -248,10 +49,14 @@ export const registerUser = async (req, res) => {
     const existingUser = await userModel.findOne({ phoneNumber }).lean();
     if (existingUser) {
       // User already exists, return user data for auto-login
+      // Generate token for existing user
+      const token = generateToken(existingUser._id);
+      
       return res.status(200).json({ 
         success: true, 
         message: "User already registered", 
         isVerified: true,
+        token,
         userData: {
           name: existingUser.name,
           phoneNumber: existingUser.phoneNumber,
@@ -262,13 +67,13 @@ export const registerUser = async (req, res) => {
           place: existingUser.place,
           gender: existingUser.gender,
           totalInvites: existingUser.totalInvites,
-          rank: existingUser.rank,
           level: existingUser.level,
           qrCode: existingUser.qrCode
         }
       });
     }
 
+    // Rest of the function remains the same...
     // Generate OTP (6 digit random number)
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     
@@ -283,7 +88,7 @@ export const registerUser = async (req, res) => {
     
     // Send WhatsApp verification message with OTP
     try {
-      await sendWhatsAppTemplate(phoneNumber, 'profile_update__otp', [
+      await sendWhatsAppTemplate(phoneNumber, 'register_otp', [
         { name: '1', value: otp }
       ]);
       console.log(`✅ OTP sent to ${phoneNumber}`);
@@ -311,8 +116,6 @@ export const registerUser = async (req, res) => {
 
 
 
-
-// 🔹 Verify OTP and Complete Registration
 export const verifyOtpAndRegister = async (req, res) => {
   try {
     // Validate input
@@ -339,10 +142,13 @@ export const verifyOtpAndRegister = async (req, res) => {
       // Delete the OTP since it's verified
       await Otp.deleteMany({ phoneNumber });
       
+      // Generate token for existing user
+      const token = generateToken(existingUser._id);
+      
       return res.status(200).json({ 
         success: true, 
         message: "User already registered", 
-        isVerified: true,
+        token,
         userData: {
           name: existingUser.name,
           phoneNumber: existingUser.phoneNumber,
@@ -354,8 +160,8 @@ export const verifyOtpAndRegister = async (req, res) => {
       });
     }
 
+    // Continue with user creation...
     // Generate unique referral code with name and random string
-    // Clean the name (remove spaces, special chars) and get first part
     const cleanName = name.replace(/[^a-zA-Z0-9]/g, '').substring(0, 10);
     let referralCode = `${cleanName}_${generateUniqueId()}`;
     
@@ -373,8 +179,8 @@ export const verifyOtpAndRegister = async (req, res) => {
       }
     }
     
-    // Generate referral link
-    const referralLink = `https://localhost:3001.com/${referralCode}`;
+    const frontendUrl = process.env.FRONTEND_URL;
+const referralLink = `${frontendUrl}/${referralCode}`;
     
     // Generate QR code as URL
     const qrCodeUrl = await QRCode.toDataURL(referralLink);
@@ -386,10 +192,9 @@ export const verifyOtpAndRegister = async (req, res) => {
       referralCode,
       referralLink,
       qrCode: qrCodeUrl, // Store the QR code URL
-      isVerified: true,
-      // These fields will need to be updated later in profile completion
-      yearOfBirth: new Date().getFullYear() - 18, // Default value
-      place: "Not specified",
+      // Removed isVerified field
+      yearOfBirth: null,
+      place: null,
       gender: "Other"
     });
 
@@ -397,8 +202,8 @@ export const verifyOtpAndRegister = async (req, res) => {
     if (referredBy) {
       const referrer = await userModel.findOne({ referralCode: referredBy });
       if (referrer) {
-        // Set referrer in new user
-        newUser.referredBy = referrer._id;
+        // Set referrer's referral code in new user
+        newUser.referredBy = referrer.referralCode;
         
         // Update referrer's points and total invites
         await userModel.findByIdAndUpdate(referrer._id, {
@@ -417,6 +222,10 @@ export const verifyOtpAndRegister = async (req, res) => {
     // Save the new user
     await newUser.save();
     
+    // Generate token for new user
+    const token = generateToken(newUser._id);
+    console.log(token)
+
     // Delete the OTP since it's verified and used
     await Otp.deleteMany({ phoneNumber });
 
@@ -432,17 +241,19 @@ export const verifyOtpAndRegister = async (req, res) => {
       // Continue even if WhatsApp sending fails
     }
 
-    // Return success with user data
+    // Return success with user data and token
     res.status(201).json({
       success: true, 
       message: "✅ Registration successful!",
-      isVerified: true,
+      token,
       userData: {
         name: newUser.name,
         phoneNumber: newUser.phoneNumber,
         points: newUser.points,
         referralCode: newUser.referralCode,
         referralLink: newUser.referralLink,
+        totalInvites: newUser.totalInvites,
+          level: newUser.level,
         qrCode: newUser.qrCode
       }
     });
@@ -452,7 +263,6 @@ export const verifyOtpAndRegister = async (req, res) => {
     res.status(500).json({ success: false, message: "Server Error", error: error.message });
   }
 };
-
 
 
 

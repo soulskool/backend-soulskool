@@ -109,3 +109,52 @@ export const getUserInfo = async (req, res) => {
     });
   }
 };
+
+
+
+
+
+
+export const getReferredUsers = async (req, res) => {
+  try {
+    const { referralCode } = req.params;
+
+    // Validate referral code
+    if (!referralCode) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Referral code is required" 
+      });
+    }
+
+    // Find all users referred by this referral code
+    const referredUsers = await User.find({ 
+      referredBy: referralCode 
+    })
+    .select('name phoneNumber') // Select only name and phone number
+    .sort({ name: 1 }); // Sort by name in ascending order
+
+    // If no referred users found
+    if (referredUsers.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "No referred users found" 
+      });
+    }
+
+    // Return the list of referred users
+    res.status(200).json({
+      success: true,
+      count: referredUsers.length,
+      data: referredUsers
+    });
+  } catch (error) {
+    console.error('Error in getReferredUsers:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Server error while fetching referred users" 
+    });
+  }
+};
+
+

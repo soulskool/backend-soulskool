@@ -1,19 +1,4 @@
-// import express from "express";
-// import { registerUser, loginUser, getUserProfile } from "../controllers/userController.js";
-// import { authenticate } from "../middleware/authMiddleware.js";
 
-// const router = express.Router();
-
-// // User Registration Route
-// router.post("/register", registerUser);
-
-// // User Login Route
-// router.post("/login", loginUser);
-
-// // Get User Profile (Protected Route)
-// router.get("/profile", authenticate, getUserProfile);
-
-// export default router;
 
 
 import express from "express";
@@ -21,10 +6,10 @@ import {
     registerUser, 
     verifyOtpAndRegister
 } from "../controllers/userController.js";
-import { authenticate } from "../middleware/auth.js";
+import { authMiddleware } from '../middleware/authMiddleware.js';
 import { generateProfileUpdateOtp, verifyOtpAndUpdateProfile } from '../controllers/profileController.js';
-import{testWelcomeTemplate} from '../controllers/testWelcomeTemplate.js'
-import{getUserRank,getUserInfo} from '../controllers/getUserDetails.js'
+
+import{getUserRank,getUserInfo,getReferredUsers} from '../controllers/getUserDetails.js'
 
 const router = express.Router();
 
@@ -40,22 +25,19 @@ router.get('/user-info/:phoneNumber', getUserInfo);
 
 
 
-router.post("/testwelcometemplate",testWelcomeTemplate )
 
 
 
 
-
-
-
+router.get('/:referralCode/referred-users',getReferredUsers)
 
 
 
 // Route to generate and send OTP for profile update
-router.post('/generate-update-otp', generateProfileUpdateOtp);
+router.post('/generate-update-otp',authMiddleware, generateProfileUpdateOtp);
 
 // Route to verify OTP and update profile
-router.post('/verify-update-otp', verifyOtpAndUpdateProfile);
+router.post('/verify-update-otp',authMiddleware, verifyOtpAndUpdateProfile);
 
 
 

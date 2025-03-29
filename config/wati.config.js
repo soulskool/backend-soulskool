@@ -1,10 +1,16 @@
-// config/wati.config.js
+
+
+
+import dotenv from "dotenv";
+
+dotenv.config(); // Load environment variables
+
 export const watiConfig = {
-    baseUrl: "https://live-mt-server.wati.io/api/v1",  // Updated with your specific endpoint
-    clientId: "300647", // Your client ID
-    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI3ZTg2NGY2OS03NjQ4LTQ0ODItYTBjMS00MTkwNjFkM2QyMGMiLCJ1bmlxdWVfbmFtZSI6Inl0c2FtZWVyQGdtYWlsLmNvbSIsIm5hbWVpZCI6Inl0c2FtZWVyQGdtYWlsLmNvbSIsImVtYWlsIjoieXRzYW1lZXJAZ21haWwuY29tIiwiYXV0aF90aW1lIjoiMDMvMTgvMjAyNSAwNDozMDozMCIsInRlbmFudF9pZCI6IjMwMDY0NyIsImRiX25hbWUiOiJtdC1wcm9kLVRlbmFudHMiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJBRE1JTklTVFJBVE9SIiwiZXhwIjoyNTM0MDIzMDA4MDAsImlzcyI6IkNsYXJlX0FJIiwiYXVkIjoiQ2xhcmVfQUkifQ.v94LBBjW3o61ghw9XXYNl-jac19hZmTLlDbMoTfasOs", // Your token without "Bearer " prefix
+    baseUrl: process.env.WATI_BASE_URL,
+    clientId: process.env.WATI_CLIENT_ID,
+    token: process.env.WATI_TOKEN,
     templates: {
-      verification: "verification_message",
-      profile_update__otp: 'profile_update__otp' // Your approved template name
+        verification: process.env.WATI_VERIFICATION_TEMPLATE,
+        profile_update__otp: process.env.WATI_PROFILE_UPDATE_TEMPLATE
     }
-  };
+};
