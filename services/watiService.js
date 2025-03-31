@@ -30,11 +30,9 @@ export const sendWhatsAppTemplate = async (phoneNumber, templateName, parameters
       }
     });
     
-    console.log(`✅ Template message sent to ${cleanNumber} successfully`);
-    return response.data;
+        return response.data;
   } catch (error) {
-    console.error(`❌ Error sending WhatsApp template to ${phoneNumber}:`, error.response?.data || error.message);
-    throw error;
+        throw error;
   }
 };
 

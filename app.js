@@ -29,7 +29,6 @@ dotenv.config();
 
 // Connect to Database
 connectDB();
-console.log("Connecting to Redis...");
 await connectRedis();
 
 
@@ -75,15 +74,12 @@ app.use((req, res) => {
 
 // Error Handling Middleware (Must be the last middleware)
 app.use((err, req, res, next) => {
-    console.error("Error:", err.stack);
-    res.status(err.status || 500).json({ message: err.message || "Server Error" });
+        res.status(err.status || 500).json({ message: err.message || "Server Error" });
 });
 
 // Start Server
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT} in ${process.env.NODE_ENV || "production"} mode`);
-}).on("error", (err) => {
-    console.error("Server failed to start:", err);
-    process.exit(1);
+    }).on("error", (err) => {
+        process.exit(1);
 });

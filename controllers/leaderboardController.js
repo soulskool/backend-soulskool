@@ -58,8 +58,7 @@ export const getLeaderboard = async (req, res) => {
 
         return res.status(200).json(response);
     } catch (error) {
-        console.error("❌ Error fetching leaderboard:", error);
-        return res.status(500).json({ success: false, message: "Server error." });
+                return res.status(500).json({ success: false, message: "Server error." });
     }
 };
 
@@ -105,9 +104,7 @@ export const updateUserScore = async (req, res) => {
 
         // Invalidate leaderboard cache
         await client.flushDb();
-        console.log("🚀 Cache cleared after updating score");
-
-        return res.status(200).json({
+                return res.status(200).json({
             success: true,
             message: `Updated ${username}'s score`,
             username,
@@ -115,8 +112,7 @@ export const updateUserScore = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("❌ Error:", error);
-        return res.status(500).json({ success: false, message: "Server error." });
+                return res.status(500).json({ success: false, message: "Server error." });
     }
 };
 
@@ -150,7 +146,6 @@ export const getUserRank = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("❌ Error getting user rank:", error);
-        return res.status(500).json({ success: false, message: "Server error." });
+                return res.status(500).json({ success: false, message: "Server error." });
     }
 };

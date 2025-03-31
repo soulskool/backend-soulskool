@@ -19,18 +19,9 @@ router.post("/register/verify-otp",verifyOtpAndRegister)
 
 
 
-
-router.get('/user-rank/:phoneNumber', getUserRank);
-router.get('/user-info/:phoneNumber', getUserInfo);
-
-
-
-
-
-
-
-router.get('/:referralCode/referred-users',getReferredUsers)
-
+router.get('/user-rank/:phoneNumber', authMiddleware, getUserRank);
+router.get('/user-info/:phoneNumber', authMiddleware, getUserInfo);
+router.get('/:referralCode/referred-users', authMiddleware, getReferredUsers)
 
 
 // Route to generate and send OTP for profile update

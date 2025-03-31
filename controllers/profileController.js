@@ -43,8 +43,7 @@ export const generateProfileUpdateOtp = async (req, res) => {
       message: 'OTP sent successfully to your WhatsApp number'
     });
   } catch (error) {
-    console.error('Error in generateProfileUpdateOtp:', error);
-    return res.status(500).json({ 
+        return res.status(500).json({ 
       success: false, 
       message: 'Failed to send OTP',
       error: error.message 
@@ -116,8 +115,7 @@ export const verifyOtpAndUpdateProfile = async (req, res) => {
         }
       });
     } catch (error) {
-      console.error('Error in verifyOtpAndUpdateProfile:', error);
-      return res.status(500).json({ 
+            return res.status(500).json({ 
         success: false, 
         message: 'Failed to update profile',
         error: error.message 

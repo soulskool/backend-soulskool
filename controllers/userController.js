@@ -91,10 +91,8 @@ export const registerUser = async (req, res) => {
       await sendWhatsAppTemplate(phoneNumber, 'register_otp', [
         { name: '1', value: otp }
       ]);
-      console.log(`✅ OTP sent to ${phoneNumber}`);
-    } catch (error) {
-      console.error("❌ Failed to send OTP:", error);
-      // Continue the process even if WhatsApp sending fails
+          } catch (error) {
+            // Continue the process even if WhatsApp sending fails
     }
 
     res.status(200).json({
@@ -105,8 +103,7 @@ export const registerUser = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("❌ Registration Error:", error.message);
-    res.status(500).json({ success: false, message: "Server Error", error: error.message });
+        res.status(500).json({ success: false, message: "Server Error", error: error.message });
   }
 };
 
@@ -191,8 +188,7 @@ const referralLink = `${frontendUrl}/${referralCode}`;
       phoneNumber,
       referralCode,
       referralLink,
-      qrCode: qrCodeUrl, // Store the QR code URL
-      // Removed isVerified field
+      qrCode: qrCodeUrl, 
       yearOfBirth: null,
       place: null,
       gender: "Other"
@@ -213,10 +209,8 @@ const referralLink = `${frontendUrl}/${referralCode}`;
           }
         });
         
-        console.log(`✅ Referral processed: ${referrer.name} (+10 points)`);
-      } else {
-        console.log(`❌ Invalid referral code: ${referredBy}`);
-      }
+              } else {
+              }
     }
 
     // Save the new user
@@ -235,10 +229,8 @@ const referralLink = `${frontendUrl}/${referralCode}`;
         { name: '1', value: name },
         { name: '2', value: referralLink }
       ]);
-      console.log(`✅ Welcome message sent to ${phoneNumber}`);
-    } catch (error) {
-      console.error("❌ Failed to send welcome message:", error);
-      // Continue even if WhatsApp sending fails
+          } catch (error) {
+            // Continue even if WhatsApp sending fails
     }
 
     // Return success with user data and token
@@ -259,8 +251,7 @@ const referralLink = `${frontendUrl}/${referralCode}`;
     });
 
   } catch (error) {
-    console.error("❌ OTP Verification Error:", error.message);
-    res.status(500).json({ success: false, message: "Server Error", error: error.message });
+        res.status(500).json({ success: false, message: "Server Error", error: error.message });
   }
 };
 
@@ -295,10 +286,8 @@ export const resendOtp = async (req, res) => {
       await sendWhatsAppTemplate(phoneNumber, 'profile_update__otp', [
         { name: 'otp', value: otp }
       ]);
-      console.log(`✅ OTP resent to ${phoneNumber}`);
-    } catch (error) {
-      console.error("❌ Failed to resend OTP:", error);
-      // Continue the process even if WhatsApp sending fails
+          } catch (error) {
+            // Continue the process even if WhatsApp sending fails
     }
 
     res.status(200).json({
@@ -308,8 +297,7 @@ export const resendOtp = async (req, res) => {
     });
     
   } catch (error) {
-    console.error("❌ Resend OTP Error:", error.message);
-    res.status(500).json({ success: false, message: "Server Error", error: error.message });
+        res.status(500).json({ success: false, message: "Server Error", error: error.message });
   }
 };
 

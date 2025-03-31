@@ -17,8 +17,7 @@
 //     }
 //     res.json(user);
 //   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ message: "Server Error" });
+//     //     res.status(500).json({ message: "Server Error" });
 //   }
 // });
 
@@ -42,8 +41,7 @@
 
 //     res.json(updatedUser);
 //   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ message: "Server Error" });
+//     //     res.status(500).json({ message: "Server Error" });
 //   }
 // });
 
@@ -76,8 +74,7 @@ router.get("/profile", authenticate, async (req, res) => {
     }
     res.json(user);
   } catch (error) {
-    console.error("❌ Error fetching profile:", error.message);
-    res.status(500).json({ message: "❌ Server Error" });
+        res.status(500).json({ message: "❌ Server Error" });
   }
 });
 
@@ -117,8 +114,7 @@ router.post("/profile/request-otp", authenticate, async (req, res) => {
 
     res.json({ success: true, message: "📲 OTP sent via WhatsApp", otp }); // ⚠️ Remove OTP from response in production
   } catch (error) {
-    console.error("❌ OTP Error:", error.message);
-    res.status(500).json({ message: "❌ Error sending OTP" });
+        res.status(500).json({ message: "❌ Error sending OTP" });
   }
 });
 
@@ -154,8 +150,7 @@ router.put("/profile/update-profile", authenticate, async (req, res) => {
     await user.save();
     res.json({ success: true, message: "✅ Profile updated successfully", user });
   } catch (error) {
-    console.error("❌ Profile Update Error:", error.message);
-    res.status(500).json({ message: "❌ Server Error" });
+        res.status(500).json({ message: "❌ Server Error" });
   }
 });
 

@@ -39,8 +39,7 @@ export const getUserRank = async (req, res) => {
       rank: userRank,
     });
   } catch (error) {
-    console.error("Error getting user rank:", error);
-    return res.status(500).json({
+        return res.status(500).json({
       success: false,
       message: "Error calculating user rank",
       error: error.message,
@@ -101,8 +100,7 @@ export const getUserInfo = async (req, res) => {
       user: userInfo,
     });
   } catch (error) {
-    console.error("Error getting user information:", error);
-    return res.status(500).json({
+        return res.status(500).json({
       success: false,
       message: "Error retrieving user information",
       error: error.message,
@@ -149,8 +147,7 @@ export const getReferredUsers = async (req, res) => {
       data: referredUsers
     });
   } catch (error) {
-    console.error('Error in getReferredUsers:', error);
-    res.status(500).json({ 
+        res.status(500).json({ 
       success: false, 
       message: "Server error while fetching referred users" 
     });
