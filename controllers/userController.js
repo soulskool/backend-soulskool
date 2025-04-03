@@ -4,6 +4,8 @@
 // controllers/userController.js
 import { validationResult } from 'express-validator';
 import userModel from '../models/userModel.js';
+import axios from 'axios';
+
 
 import { sendWhatsAppTemplate } from '../services/watiService.js';
 import crypto from "crypto";
@@ -80,6 +82,7 @@ export const registerUser = async (req, res) => {
     // Delete any existing OTPs for this number
     await Otp.deleteMany({ phoneNumber });
     
+    
     // Create new OTP entry
     await Otp.create({
       phoneNumber,
@@ -113,6 +116,8 @@ export const registerUser = async (req, res) => {
 
 
 
+
+
 export const verifyOtpAndRegister = async (req, res) => {
   try {
     // Validate input
@@ -133,31 +138,6 @@ export const verifyOtpAndRegister = async (req, res) => {
       });
     }
 
-    // Check if user already exists (double check)
-    const existingUser = await userModel.findOne({ phoneNumber }).lean();
-    if (existingUser) {
-      // Delete the OTP since it's verified
-      await Otp.deleteMany({ phoneNumber });
-      
-      // Generate token for existing user
-      const token = generateToken(existingUser._id);
-      
-      return res.status(200).json({ 
-        success: true, 
-        message: "User already registered", 
-        token,
-        userData: {
-          name: existingUser.name,
-          phoneNumber: existingUser.phoneNumber,
-          points: existingUser.points,
-          referralCode: existingUser.referralCode,
-          referralLink: existingUser.referralLink,
-          qrCode: existingUser.qrCode
-        }
-      });
-    }
-
-    // Continue with user creation...
     // Generate unique referral code with name and random string
     const cleanName = name.replace(/[^a-zA-Z0-9]/g, '').substring(0, 10);
     let referralCode = `${cleanName}_${generateUniqueId()}`;
@@ -177,7 +157,7 @@ export const verifyOtpAndRegister = async (req, res) => {
     }
     
     const frontendUrl = process.env.FRONTEND_URL;
-const referralLink = `${frontendUrl}/${referralCode}`;
+    const referralLink = `${frontendUrl}/${referralCode}`;
     
     // Generate QR code as URL
     const qrCodeUrl = await QRCode.toDataURL(referralLink);
@@ -201,16 +181,21 @@ const referralLink = `${frontendUrl}/${referralCode}`;
         // Set referrer's referral code in new user
         newUser.referredBy = referrer.referralCode;
         
-        // Update referrer's points and total invites
-        await userModel.findByIdAndUpdate(referrer._id, {
-          $inc: { 
-            points: 10,
-            totalInvites: 1
+        
+        setImmediate(async () => {
+          try {
+            await userModel.findByIdAndUpdate(referrer._id, {
+              $inc: { 
+                points: 10,
+                totalInvites: 1
+              }
+            });
+            
+          } catch (error) {
+            
           }
         });
-        
-              } else {
-              }
+      }
     }
 
     // Save the new user
@@ -218,25 +203,21 @@ const referralLink = `${frontendUrl}/${referralCode}`;
     
     // Generate token for new user
     const token = generateToken(newUser._id);
-    console.log(token)
+    
+    // Delete the OTP since it's verified and used - moved to background
+    setImmediate(async () => {
+      try {
+        await Otp.deleteMany({ phoneNumber });
+        
+      } catch (error) {
+        
+      }
+    });
 
-    // Delete the OTP since it's verified and used
-    await Otp.deleteMany({ phoneNumber });
-
-    // Send welcome message on WhatsApp
-    try {
-      await sendWhatsAppTemplate(phoneNumber, 'welcome_message_registeration', [
-        { name: '1', value: name },
-        { name: '2', value: referralLink }
-      ]);
-          } catch (error) {
-            // Continue even if WhatsApp sending fails
-    }
-
-    // Return success with user data and token
-    res.status(201).json({
+    // Return response immediately with user data
+    res.status(201).json({ 
       success: true, 
-      message: "✅ Registration successful!",
+      message: "User registered successfully", 
       token,
       userData: {
         name: newUser.name,
@@ -244,60 +225,44 @@ const referralLink = `${frontendUrl}/${referralCode}`;
         points: newUser.points,
         referralCode: newUser.referralCode,
         referralLink: newUser.referralLink,
-        totalInvites: newUser.totalInvites,
-          level: newUser.level,
         qrCode: newUser.qrCode
       }
     });
 
-  } catch (error) {
-        res.status(500).json({ success: false, message: "Server Error", error: error.message });
-  }
-};
-
-
-
-
-
-
-
-
-
-
-// 🔹 Resend OTP if needed
-export const resendOtp = async (req, res) => {
-  try {
-    const { phoneNumber } = req.body;
-    
-    // Generate new OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    
-    // Delete any existing OTPs for this number
-    await Otp.deleteMany({ phoneNumber });
-    
-    // Create new OTP entry
-    await Otp.create({
-      phoneNumber,
-      otp
+    // Run WhatsApp templates in sequence using a single setImmediate to ensure order
+    setImmediate(async () => {
+      try {
+        // First send viralloop template
+        await sendWhatsAppTemplate(phoneNumber, 'first_template_viralloop', []);
+        
+        
+        // Then send welcome template
+        await sendWhatsAppTemplate(phoneNumber, 'welcome_message_registration', [
+          { name: '1', value: name },
+          { name: '2', value: referralLink }
+        ]);
+        
+      } catch (error) {
+        console.error("❌ Error sending WhatsApp templates:", error.message);
+      }
     });
-    
-    // Send WhatsApp message with OTP
-    try {
-      await sendWhatsAppTemplate(phoneNumber, 'profile_update__otp', [
-        { name: 'otp', value: otp }
-      ]);
-          } catch (error) {
-            // Continue the process even if WhatsApp sending fails
-    }
 
-    res.status(200).json({
-      success: true,
-      message: "✅ OTP resent successfully",
-      phoneNumber
+    // Run Pabbly webhook separately
+    setImmediate(async () => {
+      try {
+        const pabblyResponse = await axios.post(
+          'https://connect.pabbly.com/workflow/sendwebhookdata/IjU3NjYwNTY5MDYzZTA0MzM1MjY4NTUzMTUxMzUi_pc', 
+          { name, phoneNumber }
+        );
+        
+      } catch (pabblyError) {
+        
+      }
     });
     
   } catch (error) {
-        res.status(500).json({ success: false, message: "Server Error", error: error.message });
+    console.error("Registration error:", error);
+    res.status(500).json({ success: false, message: "Registration failed", error: error.message });
   }
 };
 

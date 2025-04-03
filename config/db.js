@@ -56,3 +56,14 @@ process.on("SIGINT", closeDB);
 process.on("SIGTERM", closeDB);
 
 export default connectDB;
+
+
+
+
+
+
+
+
+
+
+
