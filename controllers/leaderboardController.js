@@ -10,57 +10,116 @@ import { client, connectRedis } from "../config/redisClient.js";
 
 
 
+// export const getLeaderboard = async (req, res) => {
+//     try {
+//         await connectRedis();
+
+//         let { page = 1, limit = 10, search = "" } = req.query;
+//         page = Math.max(parseInt(page, 10) || 1, 1);
+//         limit = Math.max(parseInt(limit, 10) || 10, 1);
+
+//         const cacheKey = `leaderboard_page_${page}_limit_${limit}_search_${search}`;
+
+//         // Check Redis cache
+//         const cachedLeaderboard = await client.get(cacheKey);
+//         if (cachedLeaderboard) {
+//             return res.status(200).json(JSON.parse(cachedLeaderboard));
+//         }
+
+//         // Apply search filter
+//         const filter = search ? { name: { $regex: search, $options: "i" } } : {};
+
+//         // Get total users count (filtered)
+//         const totalUsers = await User.countDocuments(filter);
+
+//         // Fetch users (only required fields)
+//         const users = await User.find(filter, "name phoneNumber points") // Select only required fields
+//             .sort({ points: -1 })
+//             .skip((page - 1) * limit)
+//             .limit(limit)
+//             .lean();
+
+//         // Add rank to each user
+//         users.forEach((user, index) => {
+//             user.rank = (page - 1) * limit + index + 1;
+//         });
+
+//         const response = {
+//             success: true,
+//             page,
+//             limit,
+//             totalUsers,
+//             totalPages: Math.ceil(totalUsers / limit),
+//             users, // Only `name`, `phoneNumber`, `rank`, and `points`
+//         };
+
+//         // Cache leaderboard for 30 seconds
+//         await client.setEx(cacheKey, 30, JSON.stringify(response));
+
+//         return res.status(200).json(response);
+//     } catch (error) {
+//                 return res.status(500).json({ success: false, message: "Server error." });
+//     }
+// };
+
+
+
+
+
+
 export const getLeaderboard = async (req, res) => {
     try {
-        await connectRedis();
-
-        let { page = 1, limit = 10, search = "" } = req.query;
-        page = Math.max(parseInt(page, 10) || 1, 1);
-        limit = Math.max(parseInt(limit, 10) || 10, 1);
-
-        const cacheKey = `leaderboard_page_${page}_limit_${limit}_search_${search}`;
-
-        // Check Redis cache
-        const cachedLeaderboard = await client.get(cacheKey);
-        if (cachedLeaderboard) {
-            return res.status(200).json(JSON.parse(cachedLeaderboard));
-        }
-
-        // Apply search filter
-        const filter = search ? { name: { $regex: search, $options: "i" } } : {};
-
-        // Get total users count (filtered)
-        const totalUsers = await User.countDocuments(filter);
-
-        // Fetch users (only required fields)
-        const users = await User.find(filter, "name phoneNumber points") // Select only required fields
-            .sort({ points: -1 })
-            .skip((page - 1) * limit)
-            .limit(limit)
-            .lean();
-
-        // Add rank to each user
-        users.forEach((user, index) => {
-            user.rank = (page - 1) * limit + index + 1;
-        });
-
-        const response = {
-            success: true,
-            page,
-            limit,
-            totalUsers,
-            totalPages: Math.ceil(totalUsers / limit),
-            users, // Only `name`, `phoneNumber`, `rank`, and `points`
-        };
-
-        // Cache leaderboard for 30 seconds
-        await client.setEx(cacheKey, 30, JSON.stringify(response));
-
-        return res.status(200).json(response);
+      await connectRedis();
+  
+      let { page = 1, limit = 10, search = "" } = req.query;
+      page = Math.max(parseInt(page, 10) || 1, 1);
+      limit = Math.max(parseInt(limit, 10) || 10, 1);
+  
+      const cacheKey = `leaderboard_page_${page}_limit_${limit}_search_${search}`;
+  
+      const cachedLeaderboard = await client.get(cacheKey);
+      if (cachedLeaderboard) {
+        return res.status(200).json(JSON.parse(cachedLeaderboard));
+      }
+  
+      const filter = search ? { name: { $regex: search, $options: "i" } } : {};
+  
+      const totalUsers = await User.countDocuments(filter);
+  
+      const users = await User.find(filter, "name phoneNumber points createdAt")
+        .sort({ points: -1, createdAt: 1 }) // Fix: Secondary sort by createdAt
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean();
+  
+      users.forEach((user, index) => {
+        user.rank = (page - 1) * limit + index + 1;
+      });
+  
+      const response = {
+        success: true,
+        page,
+        limit,
+        totalUsers,
+        totalPages: Math.ceil(totalUsers / limit),
+        users,
+      };
+  
+      await client.setEx(cacheKey, 30, JSON.stringify(response));
+  
+      return res.status(200).json(response);
     } catch (error) {
-                return res.status(500).json({ success: false, message: "Server error." });
+      return res.status(500).json({ success: false, message: "Server error." });
     }
-};
+  };
+  
+
+
+
+
+
+
+
 
 
 
