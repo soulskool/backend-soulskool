@@ -10,36 +10,25 @@ export const getUserRank = async (req, res) => {
   try {
     const { phoneNumber } = req.params;
 
-    // Validate phone number
     if (!phoneNumber || !/^(\+?\d{10,15})$/.test(phoneNumber)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid phone number format",
-      });
+      return res.status(400).json({ success: false, message: "Invalid phone number format" });
     }
 
-    // Find the user by phone number
-    const user = await User.findOne({ phoneNumber });
-    
+    const user = await User.findOne({ phoneNumber }).lean();
+
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
+      return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    // Get all users sorted by points in descending order
-    const allUsers = await User.find().sort({ points: -1 }).lean();
-    
-    // Find the position of the user in the sorted array
-    const userRank = allUsers.findIndex(u => u._id.toString() === user._id.toString()) + 1;
+    // 🔥 Count users with more points (no need to load all users)
+    const rank = await User.countDocuments({ points: { $gt: user.points } });
 
     return res.status(200).json({
       success: true,
-      rank: userRank,
+      rank: rank + 1, // +1 because rank starts from 1
     });
   } catch (error) {
-        return res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Error calculating user rank",
       error: error.message,
@@ -54,53 +43,32 @@ export const getUserRank = async (req, res) => {
 
 
 
-
-
-
-/**
- * Get the latest information of a user based on their phone number
- * @param {Object} req - Request object with phoneNumber in params
- * @param {Object} res - Response object
- * @returns {Object} - Returns complete user information in the response
- */
 export const getUserInfo = async (req, res) => {
   try {
     const { phoneNumber } = req.params;
 
-    // Validate phone number
     if (!phoneNumber || !/^(\+?\d{10,15})$/.test(phoneNumber)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid phone number format",
-      });
+      return res.status(400).json({ success: false, message: "Invalid phone number format" });
     }
 
-    // Find the user by phone number and exclude sensitive fields
     const user = await User.findOne({ phoneNumber }).select("-__v").lean();
-    
+
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
+      return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    // Get current rank (optional - only if you want to include updated rank)
-    const allUsers = await User.find().sort({ points: -1 }).lean();
-    const userRank = allUsers.findIndex(u => u._id.toString() === user._id.toString()) + 1;
-    
-    // Add the calculated rank to user information
-    const userInfo = {
-      ...user,
-      currentRank: userRank // This provides the most up-to-date rank
-    };
+    // b Get current rank without loading all users
+    const rank = await User.countDocuments({ points: { $gt: user.points } });
 
     return res.status(200).json({
       success: true,
-      user: userInfo,
+      user: {
+        ...user,
+        currentRank: rank + 1,
+      },
     });
   } catch (error) {
-        return res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Error retrieving user information",
       error: error.message,

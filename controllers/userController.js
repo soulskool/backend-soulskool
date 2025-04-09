@@ -5,7 +5,7 @@
 import { validationResult } from 'express-validator';
 import userModel from '../models/userModel.js';
 import axios from 'axios';
-
+import { client as redis } from "../config/redisClient.js";
 
 import { sendWhatsAppTemplate } from '../services/watiService.js';
 import crypto from "crypto";
@@ -17,7 +17,7 @@ dotenv.config();
 
 // Generate a random alphanumeric code
 const generateUniqueId = () => crypto.randomBytes(4).toString("hex");
-console.log(process.env.JWT_SECRET)
+
 
 
 
@@ -191,6 +191,7 @@ export const verifyOtpAndRegister = async (req, res) => {
               }
             });
             
+            
           } catch (error) {
             
           }
@@ -265,7 +266,6 @@ export const verifyOtpAndRegister = async (req, res) => {
     res.status(500).json({ success: false, message: "Registration failed", error: error.message });
   }
 };
-
 
 
 
