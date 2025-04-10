@@ -126,7 +126,7 @@ export const verifyOtpAndRegister = async (req, res) => {
       return res.status(400).json({ success: false, errors: errors.array() });
     }
 
-    const { phoneNumber, otp, name, referredBy } = req.body;
+    const { phoneNumber, otp, name, email, referredBy } = req.body;
 
     // Find the OTP entry
     const otpRecord = await Otp.findOne({ phoneNumber, otp });
@@ -248,18 +248,26 @@ export const verifyOtpAndRegister = async (req, res) => {
       }
     });
 
-    // Run Pabbly webhook separately
+
     setImmediate(async () => {
       try {
+        const currentDate = new Date().toLocaleString("en-IN", {
+      timeZone: "Asia/Kolkata",
+    });
         const pabblyResponse = await axios.post(
           'https://connect.pabbly.com/workflow/sendwebhookdata/IjU3NjYwNTY5MDYzZTA0MzM1MjY4NTUzMTUxMzUi_pc', 
-          { name, phoneNumber }
+          { 
+            name, 
+            phoneNumber,  
+            email,
+            date: currentDate
+          }
         );
-        
       } catch (pabblyError) {
         
       }
     });
+
     
   } catch (error) {
     console.error("Registration error:", error);

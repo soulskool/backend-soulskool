@@ -87,7 +87,7 @@ export const getLeaderboard = async (req, res) => {
       const totalUsers = await User.countDocuments(filter);
   
       const users = await User.find(filter, "name phoneNumber points createdAt")
-        .sort({ points: -1, createdAt: 1 }) // Fix: Secondary sort by createdAt
+        .sort({ points: -1, createdAt: 1 }) 
         .skip((page - 1) * limit)
         .limit(limit)
         .lean();
